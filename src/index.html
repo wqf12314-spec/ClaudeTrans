@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaudeTrans</title>
+  <style>
+    :root {
+      --bg-primary: #0F0F0F;
+      --bg-secondary: #171717;
+      --bg-tertiary: #1F1F1F;
+      --bg-input: #2A2A2A;
+      --text-primary: #ECECEC;
+      --text-secondary: #A8A8A8;
+      --border: #2A2A2A;
+      --accent: #CC785C;
+      --accent-hover: #D68A6E;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 自定义标题栏 */
+    .titlebar {
+      height: 36px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    .titlebar-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .titlebar-controls {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .titlebar-btn {
+      width: 32px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+
+    .titlebar-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .titlebar-btn.close:hover {
+      background: #E63946;
+      color: white;
+    }
+
+    /* 主容器 */
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 消息列表 */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--bg-input);
+      border-radius: 999px;
+    }
+
+    /* 消息气泡 */
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .message-role {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .message-text {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: 8px;
+      line-height: 1.6;
+      font-size: 14.5px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .message.assistant .message-text {
+      background: var(--bg-tertiary);
+      border-color: var(--border);
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .message-action-btn {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .message-action-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    /* 输入区域 */
+    .input-area {
+      padding: 16px 24px 24px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #4A4A4A;
+    }
+
+    .input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      max-height: 120px;
+    }
+
+    .input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .send-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+      align-self: flex-end;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 48px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      opacity: 0.3;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .empty-state-desc {
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 自定义标题栏 -->
+  <div class="titlebar">
+    <div class="titlebar-title">ClaudeTrans</div>
+    <div class="titlebar-controls">
+      <button class="titlebar-btn" id="minimize">―</button>
+      <button class="titlebar-btn" id="maximize">□</button>
+      <button class="titlebar-btn close" id="close">×</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 消息列表 -->
+    <div class="messages" id="messages">
+      <div class="empty-state">
+        <div class="empty-state-icon">🌐</div>
+        <div class="empty-state-title">ClaudeTrans 翻译助手</div>
+        <div class="empty-state-desc">
+          输入中文或英文，点击「翻译」即可自动翻译成对应语言。
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          class="input"
+          id="input"
+          placeholder="输入要翻译的文字..."
+          rows="1"
+        ></textarea>
+        <button class="send-btn" id="send">翻译</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
